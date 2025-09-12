@@ -111,8 +111,8 @@
           principal.innerHTML = '<option value="">Selecione o membro principal</option>';
           lista.sort().forEach(m => {
             const option = document.createElement("option");
-            option.value = m;
-            option.textContent = m;
+            option.value = m.trim();
+            option.textContent = m.trim();
             principal.appendChild(option);
           });
         });
@@ -126,9 +126,10 @@
           const produtoSelect = document.getElementById("produto");
           produtoSelect.innerHTML = '<option value="">Selecione um produto</option>';
           lista.forEach(item => {
+            const nome = item.produto.trim();
             const option = document.createElement("option");
-            option.value = item.produto;
-            option.textContent = item.produto;
+            option.value = nome;
+            option.textContent = nome;
             produtoSelect.appendChild(option);
           });
         });
@@ -150,9 +151,10 @@
         .then(lista => {
           select.innerHTML = '<option value="">Selecione membro</option>';
           lista.sort().forEach(m => {
+            const nome = m.trim();
             const option = document.createElement("option");
-            option.value = m;
-            option.textContent = m;
+            option.value = nome;
+            option.textContent = nome;
             select.appendChild(option);
           });
         });
@@ -171,13 +173,17 @@
     // Submit do formulário
     document.getElementById("registroForm").addEventListener("submit", function(e) {
       e.preventDefault();
+
+      const quantidade = Number(document.getElementById("quantidade").value) || 0;
+      const valorUnitario = parseFloat(document.getElementById("valorUnitario").value.replace(",", ".")) || 0;
+
       const formData = {
         action: "salvarRegistro",
-        membroPrincipal: document.getElementById("membroPrincipal").value,
-        membrosExtras: Array.from(document.querySelectorAll('[name="membroExtra"]')).map(s => s.value),
-        produto: document.getElementById("produto").value,
-        quantidade: Number(document.getElementById("quantidade").value),
-        valorUnitario: document.getElementById("valorUnitario").value.replace(",", ".")
+        membroPrincipal: document.getElementById("membroPrincipal").value.trim(),
+        membrosExtras: Array.from(document.querySelectorAll('[name="membroExtra"]')).map(s => s.value.trim()),
+        produto: document.getElementById("produto").value.trim(),
+        quantidade: quantidade,
+        valorUnitario: valorUnitario
       };
 
       fetch(API_URL, {
@@ -196,4 +202,3 @@
   </script>
 </body>
 </html>
-
