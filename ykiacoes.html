@@ -124,9 +124,8 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyhJhtxnjtK7dEavt19wkVq87UCDijRKhjqiUDbIq1DjkdDkamSs4omiGeDCbl-yoKI/exec";
+    const API_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
 
-    // 🔹 Adiciona novos membros extras dinamicamente
     function adicionarMembro() {
       const container = document.getElementById("membrosContainer");
       const div = document.createElement("div");
@@ -163,7 +162,6 @@
       container.appendChild(div);
     }
 
-    // 🔹 Carregar membros e produtos do Google Sheets
     function carregarMembros() {
       fetch(API_URL + "?action=getMembros")
         .then(res => res.json())
@@ -186,7 +184,7 @@
           lista.forEach(item => {
             const option = document.createElement("option");
             option.value = item.produto;
-            option.textContent = `${item.produto} ($${item.custo})`;
+            option.textContent = item.produto; // mostra só o nome do produto
             produtoSelect.appendChild(option);
           });
         });
@@ -195,32 +193,27 @@
     carregarMembros();
     carregarProdutos();
 
-    // 🔹 Envio do formulário
     document.getElementById("registroForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
       const formData = {
+        action: "salvarRegistro",
         membroPrincipal: document.getElementById("membroPrincipal").value,
         membrosExtras: Array.from(document.querySelectorAll('[name="membroExtra"]')).map(s => s.value),
         produto: document.getElementById("produto").value,
-        quantidade: document.getElementById("quantidade").value,
-        valorUnitario: document.getElementById("valorUnitario").value
+        quantidade: Number(document.getElementById("quantidade").value),
+        valorUnitario: document.getElementById("valorUnitario").value.replace(",", ".")
       };
 
-      fetch(API_URL + "?action=salvarRegistro", {
+      fetch(API_URL, {
         method: "POST",
         body: JSON.stringify(formData),
         headers: { "Content-Type": "application/json" }
       })
-        .then(res => res.text())
-        .then(msg => {
-          document.getElementById("resultado").textContent = msg;
-        })
-        .catch(err => {
-          document.getElementById("resultado").textContent = "❌ Erro ao salvar registro.";
-        });
+      .then(res => res.text())
+      .then(msg => { document.getElementById("resultado").textContent = msg; })
+      .catch(err => { document.getElementById("resultado").textContent = "❌ Erro ao salvar registro."; });
     });
   </script>
 </body>
 </html>
-
