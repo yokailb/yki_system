@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Yokai</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0d1b2a, #142d4c);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    main {
+      width: 100%;
+      max-width: 500px;
+      background: #1b263b;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    header {
+      text-align: center;
+      font-size: 1.6em;
+      font-weight: 600;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.2em;
+      color: #e0e1dd;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label { font-weight: 500; font-size: 0.95em; }
+
+    select, input {
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #24344d;
+      color: #fff;
+      font-size: 0.95em;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    select:focus, input:focus { outline: none; background: #2f455f; }
+
+    .membros-section { background: #162534; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+    .membro-box { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .membro-box select { flex: 1; }
+    .remove-btn {
+      background: #c0392b; border: none; color: #fff;
+      padding: 8px 12px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: 500;
+    }
+    .remove-btn:hover { background: #e74c3c; }
+    .add-btn {
+      background: #1abc9c; border: none; color: #fff;
+      padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.3s;
+      width: 100%; font-size: 0.95em; font-weight: 500;
+    }
+    .add-btn:hover { background: #16a085; }
+    button[type="submit"] {
+      background: #0077b6; border: none; padding: 14px; border-radius: 14px;
+      color: #fff; font-size: 1em; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px;
+    }
+    button[type="submit"]:hover { background: #0096c7; }
+    .resultado {
+      margin-top: 20px; padding: 14px; background: #0f2a3d; border-radius: 12px;
+      font-size: 0.95em; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>Sistema de Controle - Yokai</header>
+    <h2>Registrar Venda</h2>
+    <form id="registroForm">
+      <div class="membros-section">
+        <label>Membros envolvidos</label>
+        <div id="membrosContainer">
+          <div class="membro-box">
+            <select id="membroPrincipal" name="membroPrincipal" required>
+              <option value="">Selecione o membro principal</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="add-btn" onclick="adicionarMembro()">+ Adicionar membro</button>
+      </div>
+
+      <label for="produto">Produto</label>
+      <select id="produto" name="produto" required>
+        <option value="">Selecione um produto</option>
+      </select>
+
+      <label for="quantidade">Quantidade Produto</label>
+      <input type="number" id="quantidade" name="quantidade" required>
+
+      <label for="valorUnitario">Valor Sujo ($)</label>
+      <input type="text" id="valorUnitario" name="valorUnitario" required placeholder="0.00">
+
+      <button type="submit">Salvar Registro</button>
+    </form>
+    <div id="resultado" class="resultado"></div>
+  </main>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzNDKPHbLRsjPxvZPYx_63hvAHEongVMr8iOzI8MoMmxj2UtHAvCelykc_LR9HmIJSn/exec";
+
+    // 🔹 Adiciona novos membros extras dinamicamente
+    function adicionarMembro() {
+      const container = document.getElementById("membrosContainer");
+      const div = document.createElement("div");
+      div.classList.add("membro-box");
+
+      const select = document.createElement("select");
+      select.name = "membroExtra";
+      select.required = true;
+
+      const opcaoPadrao = document.createElement("option");
+      opcaoPadrao.value = "";
+      opcaoPadrao.textContent = "Selecione membro";
+      select.appendChild(opcaoPadrao);
+
+      fetch(API_URL + "?action=getMembros")
+        .then(res => res.json())
+        .then(lista => {
+          lista.sort().forEach(m => {
+            const option = document.createElement("option");
+            option.value = m;
+            option.textContent = m;
+            select.appendChild(option);
+          });
+        });
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "X";
+      btn.className = "remove-btn";
+      btn.onclick = () => { div.remove(); };
+
+      div.appendChild(select);
+      div.appendChild(btn);
+      container.appendChild(div);
+    }
+
+    // 🔹 Carregar membros e produtos do Google Sheets
+    function carregarMembros() {
+      fetch(API_URL + "?action=getMembros")
+        .then(res => res.json())
+        .then(lista => {
+          const principal = document.getElementById("membroPrincipal");
+          lista.sort().forEach(m => {
+            const option = document.createElement("option");
+            option.value = m;
+            option.textContent = m;
+            principal.appendChild(option);
+          });
+        });
+    }
+
+    function carregarProdutos() {
+      fetch(API_URL + "?action=getProdutos")
+        .then(res => res.json())
+        .then(lista => {
+          const produtoSelect = document.getElementById("produto");
+          lista.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.produto;
+            option.textContent = `${item.produto} ($${item.custo})`;
+            produtoSelect.appendChild(option);
+          });
+        });
+    }
+
+    carregarMembros();
+    carregarProdutos();
+
+    // 🔹 Envio do formulário
+    document.getElementById("registroForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const formData = {
+        membroPrincipal: document.getElementById("membroPrincipal").value,
+        membrosExtras: Array.from(document.querySelectorAll('[name="membroExtra"]')).map(s => s.value),
+        produto: document.getElementById("produto").value,
+        quantidade: document.getElementById("quantidade").value,
+        valorUnitario: document.getElementById("valorUnitario").value
+      };
+
+      fetch(API_URL + "?action=salvarRegistro", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" }
+      })
+        .then(res => res.text())
+        .then(msg => {
+          document.getElementById("resultado").textContent = msg;
+        })
+        .catch(err => {
+          document.getElementById("resultado").textContent = "❌ Erro ao salvar registro.";
+        });
+    });
+  </script>
+</body>
+</html>
